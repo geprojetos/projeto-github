@@ -10,14 +10,29 @@ var myApp = (function(){
     let errorSearch     = document.querySelector('.errorSearch');
     let successSearch   = document.querySelector('.successSearch');
     let info            = document.querySelector('.info');
+    let notCards        = document.querySelector('.not-cards');
     
     function _render() {
 
-        console.log('Exibe os repositórios');
-        console.log(listRepos);
-        
+        _messageInitial();
         _createItem();
     };
+    
+    function _messageInitial() {
+        
+        if(listRepos.length > 0) {
+            
+            notCards.classList.add('d-none');
+            notCards.innerHTML = '';
+        } else {
+            
+            notCards.classList.remove('d-none');
+            notCards.innerHTML = `
+                <h3>Você não possui nenhum repositório</h3>
+                <p>Use o campo de procurar logo a cima e adicione os seus repositórios favoritos.</p>
+            `;
+        }
+    }
     
     function _createItem() {
 
