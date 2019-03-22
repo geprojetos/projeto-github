@@ -1,9 +1,11 @@
 (function(){
     "use-strict"
 
-    let baseUrl     = 'https://api.github.com/repos';
-    let listRepos   = [];
-    let wrapperList = document.querySelector('.wrapper-list');
+    let baseUrl         = 'https://api.github.com/repos';
+    let listRepos       = [];
+    let wrapperList     = document.querySelector('.wrapper-list');
+    let form            = document.querySelector('.form');
+    let inputRepostory  = document.querySelector('.input-repository');
 
     
     function _render() {
@@ -17,6 +19,8 @@
     
     function _createItem() {
 
+        wrapperList.innerHTML = '';
+
         for(list of listRepos) {
             
             wrapperList.innerHTML += `
@@ -29,7 +33,7 @@
                             <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
                             <p class="card-text">${ list.description }</p>
                             <div>
-                                <a href="${ list.url }" class="btn btn-info btn-block mt-2 clear-both">Acessar repositório</a>
+                                <a class="btn btn-info btn-block mt-2 clear-both" href="${ list.html_url }" target="_blank">Acessar repositório</a>
                                 <a href="#" class="btn btn-danger btn-block mt-2">Remover</a>
                             </div>
                         </div>
@@ -66,8 +70,20 @@
 
     function _handleSubmit() {
 
-        _findRepository('geprojetos/rede-social-angular');
+        form.onsubmit = e => {
+
+            e.preventDefault();
+            
+            _findRepository(inputRepostory.value);
+            _clearForm();
+        }
     };
+
+    function _clearForm() {
+
+        inputRepostory.value = '';
+        inputRepostory.focus();
+    }
 
     _render();
     _handleSubmit();
