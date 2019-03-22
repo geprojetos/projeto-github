@@ -49,10 +49,6 @@
 
     function _findRepository(repository) {
 
-        _clearErrorSearch();
-        _clearSuccessSearch();
-        _setSearching();
-
         return fetch(`${ baseUrl }/${ repository }`)
             .then(res => {
 
@@ -62,20 +58,37 @@
                     return res.json();
                 }
             })
-            .then(rep => {
+            .catch(erro => erro)
+    };
+
+
+    function _findRepositoryAndReportMessage(repository) {
+
+        _clearErrorSearch();
+        _clearSuccessSearch();
+        _setSearching();
+
+        return _findRepository(repository)
+            .then(res => {
                 
-                _addRepository(rep);
-                _clearSearching();
-                _setSuccessSearch();
+                if(res.statusText) {
+                    throw res;
+                } else {
+                    _addRepository(res);
+                    _clearSearching();
+                    _setSuccessSearch();
+                    return true;
+                }
+                
             })
             .catch(erro => {
 
                 _clearSearching();
                 _setErrorSearch();
-                console.log(erro);
+                console.log(erro.statusText);
                 return erro;
             })
-    };
+    }
 
     function _addRepository(rep) {
         
@@ -89,8 +102,14 @@
 
             e.preventDefault();
             
-            _findRepository(inputRepostory.value);
-            _clearForm();
+            _findRepositoryAndReportMessage(inputRepostory.value)
+                .then(res => {
+                    if(res === true) {
+                        
+                        _clearForm();
+                        return;
+                    }
+                })
         }
     };
 
@@ -115,7 +134,8 @@
     function _setErrorSearch() {
 
         errorSearch.classList.remove('d-none');
-        errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente'
+        errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente';
+        inputRepostory.focus();
     };
 
     function _clearErrorSearch() {
