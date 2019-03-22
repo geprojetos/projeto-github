@@ -1,4 +1,4 @@
-(function(){
+var myApp = (function(){
     "use-strict"
 
     let baseUrl         = 'https://api.github.com/repos';
@@ -9,13 +9,11 @@
     let searching       = document.querySelector('.searching');
     let errorSearch     = document.querySelector('.errorSearch');
     let successSearch   = document.querySelector('.successSearch');
-
     
     function _render() {
 
         console.log('Exibe os repositórios');
         console.log(listRepos);
-        
         
         _createItem();
     };
@@ -26,6 +24,8 @@
 
         for(list of listRepos) {
             
+            let indice = listRepos.indexOf(list);
+
             wrapperList.innerHTML += `
                 <li class="col-6">
                     <div class="card mt-2">
@@ -37,14 +37,14 @@
                             <p class="card-text">${ list.description }</p>
                             <div>
                                 <a class="btn btn-info btn-block mt-2 clear-both" href="${ list.html_url }" target="_blank">Acessar repositório</a>
-                                <a href="#" class="btn btn-danger btn-block mt-2">Remover</a>
+                                <button class="btn btn-danger btn-block mt-2" onclick="myApp.handleRemove(${ indice })">Remover</button>
                             </div>
                         </div>
                     </div>
                 </li>
-            `;
-        }
+            `
 
+        };        
     };
 
     function _findRepository(repository) {
@@ -60,7 +60,6 @@
             })
             .catch(erro => erro)
     };
-
 
     function _findRepositoryAndReportMessage(repository) {
 
@@ -88,13 +87,13 @@
                 console.log(erro.statusText);
                 return erro;
             })
-    }
+    };
 
     function _addRepository(rep) {
         
         listRepos.push(rep);
         _render();
-    }
+    };
 
     function _handleSubmit() {
 
@@ -102,7 +101,7 @@
 
             e.preventDefault();
             
-            _findRepositoryAndReportMessage(inputRepostory.value)
+            _findRepositoryAndReportMessage(inputRepostory.value.trim().toLowerCase())
                 .then(res => {
                     if(res === true) {
                         
@@ -156,6 +155,26 @@
         successSearch.textContent = '';
     };
 
+    function _handleRemove(indice) {
+    
+        _removeRepository(indice);
+    };
+
+    function _removeRepository(indice) {
+    
+        listRepos.splice(indice, 1);
+        _render();
+    };
+
     _render();
     _handleSubmit();
+    
+    return {
+        
+        handleRemove: function(indice) {
+            _handleRemove(indice);
+        }
+    }
 })()
+
+myApp.handleRemove;
