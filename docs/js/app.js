@@ -6,6 +6,9 @@
     let wrapperList     = document.querySelector('.wrapper-list');
     let form            = document.querySelector('.form');
     let inputRepostory  = document.querySelector('.input-repository');
+    let searching       = document.querySelector('.searching');
+    let errorSearch     = document.querySelector('.errorSearch');
+    let successSearch   = document.querySelector('.successSearch');
 
     
     function _render() {
@@ -46,6 +49,10 @@
 
     function _findRepository(repository) {
 
+        _clearErrorSearch();
+        _clearSuccessSearch();
+        _setSearching();
+
         return fetch(`${ baseUrl }/${ repository }`)
             .then(res => {
 
@@ -55,8 +62,16 @@
                     return res.json();
                 }
             })
-            .then(rep => _addRepository(rep))
+            .then(rep => {
+                
+                _addRepository(rep);
+                _clearSearching();
+                _setSuccessSearch();
+            })
             .catch(erro => {
+
+                _clearSearching();
+                _setErrorSearch();
                 console.log(erro);
                 return erro;
             })
@@ -83,7 +98,37 @@
 
         inputRepostory.value = '';
         inputRepostory.focus();
-    }
+    };
+
+    function _setSearching() {
+
+        searching.textContent = 'Procurando pelo repositório, aguarde...';
+    };
+
+    function _clearSearching() {
+
+        searching.textContent = '';
+    };
+
+    function _setErrorSearch() {
+
+        errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente'
+    };
+
+    function _clearErrorSearch() {
+
+        errorSearch.textContent = '';
+    };
+
+    function _setSuccessSearch() {
+
+        successSearch.textContent = 'Repositório encontrado com sucesso';
+    };
+
+    function _clearSuccessSearch() {
+
+        successSearch.textContent = '';
+    };
 
     _render();
     _handleSubmit();
