@@ -272,6 +272,39 @@
             width: 1%;
             margin-bottom: 0;
         }
+        .alert {
+            position: relative;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .d-none {
+            display: none !important;
+        }
+        .d-block {
+            display: block !important;
+        }
         @media(min-width: 768px) {
             .container {
                 max-width: 720px;
@@ -365,7 +398,7 @@
     <section class="container text-center bg-white pb-2">
         <header class="jumbotron bg-dark text-white">
             <h1>
-                Projeto Github
+                Projetos do Github
             </h1>
         </header>
 
@@ -396,9 +429,11 @@
             </fieldset>
         </form>
 
-        <div class="alert alert-warning searching"></div>
-        <div class="alert alert-danger errorSearch"></div>
-        <div class="alert alert-success successSearch"></div>
+        <div>
+            <div class="alert alert-warning searching d-none"></div>
+            <div class="alert alert-danger errorSearch d-none"></div>
+            <div class="alert alert-success successSearch d-none"></div>
+        </div>
 
         <ul class="row list-unstyled wrapper-list"></ul>
     </section>

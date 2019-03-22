@@ -102,31 +102,37 @@
 
     function _setSearching() {
 
+        searching.classList.remove('d-none');
         searching.textContent = 'Procurando pelo repositório, aguarde...';
     };
 
     function _clearSearching() {
 
+        searching.classList.add('d-none');
         searching.textContent = '';
     };
 
     function _setErrorSearch() {
 
+        errorSearch.classList.remove('d-none');
         errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente'
     };
 
     function _clearErrorSearch() {
 
+        errorSearch.classList.add('d-none');
         errorSearch.textContent = '';
     };
 
     function _setSuccessSearch() {
 
+        successSearch.classList.remove('d-none');
         successSearch.textContent = 'Repositório encontrado com sucesso';
     };
 
     function _clearSuccessSearch() {
 
+        successSearch.classList.add('d-none');
         successSearch.textContent = '';
     };
 
