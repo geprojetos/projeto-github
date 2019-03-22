@@ -9,6 +9,7 @@ var myApp = (function(){
     let searching       = document.querySelector('.searching');
     let errorSearch     = document.querySelector('.errorSearch');
     let successSearch   = document.querySelector('.successSearch');
+    let info            = document.querySelector('.info');
     
     function _render() {
 
@@ -65,6 +66,7 @@ var myApp = (function(){
 
         _clearErrorSearch();
         _clearSuccessSearch();
+        _clearInfo();
         _setSearching();
 
         return _findRepository(repository)
@@ -155,9 +157,24 @@ var myApp = (function(){
         successSearch.textContent = '';
     };
 
+    function _setInfo() {
+
+        info.classList.remove('d-none');
+        info.textContent = 'O repositório foi removido';
+    };
+
+    function _clearInfo() {
+        
+        info.classList.add('d-none');
+        info.textContent = '';
+    };
+
     function _handleRemove(indice) {
     
         _removeRepository(indice);
+        _setInfo();
+        _clearSuccessSearch();
+        _clearErrorSearch();
     };
 
     function _removeRepository(indice) {
