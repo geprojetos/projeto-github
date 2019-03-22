@@ -135,7 +135,7 @@ var myApp = (function(){
     function _setErrorSearch() {
 
         errorSearch.classList.remove('d-none');
-        errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente';
+        errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente e tente novamente';
         inputRepostory.focus();
     };
 
@@ -148,7 +148,7 @@ var myApp = (function(){
     function _setSuccessSearch() {
 
         successSearch.classList.remove('d-none');
-        successSearch.textContent = 'Repositório encontrado com sucesso';
+        successSearch.textContent = 'Repositório adicionado a sua lista';
     };
 
     function _clearSuccessSearch() {
@@ -160,7 +160,7 @@ var myApp = (function(){
     function _setInfo() {
 
         info.classList.remove('d-none');
-        info.textContent = 'O repositório foi removido';
+        info.textContent = 'Repositório removido';
     };
 
     function _clearInfo() {
@@ -171,16 +171,32 @@ var myApp = (function(){
 
     function _handleRemove(indice) {
     
-        _removeRepository(indice);
-        _setInfo();
-        _clearSuccessSearch();
-        _clearErrorSearch();
+        let isRemove = _confirm('Deseja remover esse repositório?');
+
+        if(isRemove) {
+
+            _removeRepository(indice);
+            _clearSuccessSearch();
+            _clearErrorSearch();
+            _setInfo();
+        }
     };
 
     function _removeRepository(indice) {
     
         listRepos.splice(indice, 1);
         _render();
+    };
+
+    function _confirm(message) {
+        
+        if(confirm(message)) {
+
+            return true;
+        } else {
+            return false;
+        }
+        
     };
 
     _render();
