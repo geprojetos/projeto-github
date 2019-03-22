@@ -305,6 +305,9 @@
         .d-block {
             display: block !important;
         }
+        .border-danger {
+            border: 1px solid #dc3545;
+        }
         @media(min-width: 768px) {
             .container {
                 max-width: 720px;
@@ -423,8 +426,8 @@
                         </div>
                     </div>
                     <small 
-                        id="repositoryHelp" 
-                        class="form-text text-danger">
+                        id="repositoryHelp"
+                        class="form-text text-danger repositoryHelp">
                     </small>
                 </div>
             </fieldset>
@@ -435,9 +438,7 @@
             <div class="alert alert-danger errorSearch d-none"></div>
             <div class="alert alert-success successSearch d-none"></div>
             <div class="alert alert-info info d-none"></div>
-            <div class="alert alert-info not-cards">
-                
-            </div>
+            <div class="alert alert-info not-cards"></div>
         </div>
 
         <ul class="row list-unstyled wrapper-list"></ul>

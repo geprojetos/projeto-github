@@ -5,7 +5,8 @@ var myApp = (function(){
     let listRepos       = [];
     let wrapperList     = document.querySelector('.wrapper-list');
     let form            = document.querySelector('.form');
-    let inputRepostory  = document.querySelector('.input-repository');
+    let inputRepository = document.querySelector('.input-repository');
+    let inputErroMessage= document.querySelector('.repositoryHelp');
     let searching       = document.querySelector('.searching');
     let errorSearch     = document.querySelector('.errorSearch');
     let successSearch   = document.querySelector('.successSearch');
@@ -14,6 +15,8 @@ var myApp = (function(){
     
     function _render() {
 
+        console.log(listRepos);
+        
         _messageInitial();
         _createItem();
     };
@@ -32,7 +35,7 @@ var myApp = (function(){
                 <p>Use o campo de procurar logo a cima e adicione os seus repositórios favoritos.</p>
             `;
         }
-    }
+    };
     
     function _createItem() {
 
@@ -118,21 +121,26 @@ var myApp = (function(){
 
             e.preventDefault();
             
-            _findRepositoryAndReportMessage(inputRepostory.value.trim().toLowerCase())
-                .then(res => {
-                    if(res === true) {
-                        
-                        _clearForm();
-                        return;
-                    }
-                })
+            let isValid = _validateForm();
+
+            if(isValid) {
+
+                _findRepositoryAndReportMessage(inputRepository.value.trim().toLowerCase())
+                    .then(res => {
+                        if(res === true) {
+                            
+                            _clearForm();
+                            return;
+                        }
+                    })
+            }
         }
     };
 
     function _clearForm() {
 
-        inputRepostory.value = '';
-        inputRepostory.focus();
+        inputRepository.value = '';
+        inputRepository.focus();
     };
 
     function _setSearching() {
@@ -151,7 +159,7 @@ var myApp = (function(){
 
         errorSearch.classList.remove('d-none');
         errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente e tente novamente';
-        inputRepostory.focus();
+        inputRepository.focus();
     };
 
     function _clearErrorSearch() {
@@ -212,6 +220,31 @@ var myApp = (function(){
             return false;
         }
         
+    };
+
+    function _validateForm() {
+
+        if(!inputRepository.value) {
+
+            _inputErroStyle();
+            return false;
+        };
+
+        _inputClearErro();
+        return true;
+    };
+
+    function _inputErroStyle() {
+
+        inputRepository.classList.add('border-danger');
+        inputErroMessage.textContent = 'Por favor, preencha o campo com o nome do usuário e do repositório. exemplo: usuário/repositório'
+        inputRepository.focus();
+    };
+
+    function _inputClearErro() {
+        
+        inputRepository.classList.remove('border-danger');
+        inputErroMessage.textContent = '';
     };
 
     _render();
