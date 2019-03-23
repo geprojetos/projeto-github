@@ -210,6 +210,7 @@ var myApp = (function(){
     function _removeRepository(indice) {
     
         listReps.splice(indice, 1);
+        _saveLocalStorage();
         _render();
     };
 
@@ -251,8 +252,8 @@ var myApp = (function(){
 
     function _saveLocalStorage() {
 
-        window.localStorage.setItem(key, JSON.stringify(listReps))
-    }
+        window.localStorage.setItem(key, JSON.stringify(listReps));
+    };
 
     _render();
     _handleSubmit();
