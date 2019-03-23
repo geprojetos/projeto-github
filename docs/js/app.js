@@ -1,8 +1,9 @@
 var myApp = (function(){
     "use-strict"
 
+    const key           = 'key:github';
     let baseUrl         = 'https://api.github.com/repos';
-    let listRepos       = [];
+    let listReps        = JSON.parse(window.localStorage.getItem(key)) || [];
     let wrapperList     = document.querySelector('.wrapper-list');
     let form            = document.querySelector('.form');
     let inputRepository = document.querySelector('.input-repository');
@@ -15,7 +16,7 @@ var myApp = (function(){
     
     function _render() {
 
-        console.log(listRepos);
+        console.log(listReps);
         
         _messageInitial();
         _createItem();
@@ -23,7 +24,7 @@ var myApp = (function(){
     
     function _messageInitial() {
         
-        if(listRepos.length > 0) {
+        if(listReps.length > 0) {
             
             notCards.classList.add('d-none');
             notCards.innerHTML = '';
@@ -41,9 +42,9 @@ var myApp = (function(){
 
         wrapperList.innerHTML = '';
 
-        for(list of listRepos) {
+        for(list of listReps) {
             
-            let indice = listRepos.indexOf(list);
+            let indice = listReps.indexOf(list);
 
             wrapperList.innerHTML += `
                 <li class="col-6">
@@ -111,7 +112,8 @@ var myApp = (function(){
 
     function _addRepository(rep) {
         
-        listRepos.push(rep);
+        listReps.push(rep);
+        _saveLocalStorage();
         _render();
     };
 
@@ -207,7 +209,7 @@ var myApp = (function(){
 
     function _removeRepository(indice) {
     
-        listRepos.splice(indice, 1);
+        listReps.splice(indice, 1);
         _render();
     };
 
@@ -246,6 +248,11 @@ var myApp = (function(){
         inputRepository.classList.remove('border-danger');
         inputErroMessage.textContent = '';
     };
+
+    function _saveLocalStorage() {
+
+        window.localStorage.setItem(key, JSON.stringify(listReps))
+    }
 
     _render();
     _handleSubmit();
