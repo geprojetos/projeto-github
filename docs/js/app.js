@@ -13,6 +13,7 @@ var myApp = (function(){
     let successSearch   = document.querySelector('.successSearch');
     let info            = document.querySelector('.info');
     let notCards        = document.querySelector('.not-cards');
+    let modalConfirm    = document.querySelector('.modal-confirm');
     
     function _render() {
 
@@ -195,7 +196,7 @@ var myApp = (function(){
     };
 
     function _handleRemove(indice) {
-    
+            
         let isRemove = _confirm('Deseja remover esse repositório?');
 
         if(isRemove) {
@@ -254,6 +255,34 @@ var myApp = (function(){
 
         window.localStorage.setItem(key, JSON.stringify(listReps));
     };
+
+    function _modalConfirm() {
+
+        modalConfirm.innerHTML = `
+            <div class="modal" tabindex="-1" role="dialog" aria-labelledby="modalConfirm" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                    <div class="modal-header bg-info modal-header text-white">
+                        <h4 class="modal-title" id="modalConfirm">Deseja remover esse repositório?</h4>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Esse repositório será removido da sua lista, deseja continuar?
+                    </div>
+                    <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-success">Confirmar</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-overlay"></div>
+        `
+    };
+
+    _modalConfirm();
 
     _render();
     _handleSubmit();
