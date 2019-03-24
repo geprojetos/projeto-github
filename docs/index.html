@@ -318,15 +318,29 @@
         .border-danger {
             border: 1px solid #dc3545;
         }
+        .modal-visible .modal-overlay {
+            background: rgba(0, 0, 0, .7);
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transition: all .5s ease-in-out;
+        }
+        .modal-visible .modal {
+            transition: all .5s ease-in-out;
+            top: 50%;
+        }
         .modal {
             position: fixed;
-            top: 50%;
-            left: 50%;
             max-width: 400px;
             width: 100%;
             padding: .5em;
             transform: translate(-50%, -50%);
+            left: 50%;
+            top: -50%;
             z-index: 2;
+            transition: all .5s ease-in-out;
         }
         .modal-dialog {
             position: relative;
@@ -383,14 +397,6 @@
             border-top: 1px solid #dee2e6;
             border-bottom-right-radius: 0.3em;
             border-bottom-left-radius: 0.3em;
-        }
-        .modal-overlay {
-            background: rgba(0, 0, 0, .7);
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
         }
         @media(min-width: 768px) {
             .container {

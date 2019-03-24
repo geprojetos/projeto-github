@@ -58,7 +58,7 @@ var myApp = (function(){
                             <p class="card-text">${ list.description }</p>
                             <div>
                                 <a class="btn btn-info btn-block mt-2 clear-both" href="${ list.html_url }" target="_blank">Acessar repositório</a>
-                                <button class="btn btn-danger btn-block mt-2" onclick="myApp.handleRemove(${ indice })">Remover</button>
+                                <button class="btn btn-danger btn-block mt-2" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
                             </div>
                         </div>
                     </div>
@@ -197,7 +197,7 @@ var myApp = (function(){
 
     function _handleRemove(indice) {
             
-        let isRemove = _confirm('Deseja remover esse repositório?');
+        // let isRemove = _confirm('Deseja remover esse repositório?');
 
         if(isRemove) {
 
@@ -256,25 +256,27 @@ var myApp = (function(){
         window.localStorage.setItem(key, JSON.stringify(listReps));
     };
 
-    function _modalConfirm() {
+    function _templateModalConfirm() {
+
+        document.querySelector('body').classList.add('modal-visible');
 
         modalConfirm.innerHTML = `
             <div class="modal" tabindex="-1" role="dialog" aria-labelledby="modalConfirm" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
-                    <div class="modal-header bg-info modal-header text-white">
-                        <h4 class="modal-title" id="modalConfirm">Deseja remover esse repositório?</h4>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        Esse repositório será removido da sua lista, deseja continuar?
-                    </div>
-                    <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-success">Confirmar</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
-                    </div>
+                        <header class="modal-header bg-info modal-header text-white">
+                            <h4 class="modal-title" id="modalConfirm">Deseja remover esse repositório?</h4>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="myApp.closeModalConfirm()">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </header>
+                        <div class="modal-body">
+                            Esse repositório será removido da sua lista, deseja continuar?
+                        </div>
+                        <footer class="modal-footer bg-light">
+                            <button type="button" class="btn btn-success" >Confirmar</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="myApp.closeModalConfirm()">Cancelar</button>
+                        </footer>
                     </div>
                 </div>
             </div>
@@ -282,17 +284,27 @@ var myApp = (function(){
         `
     };
 
-    _modalConfirm();
+    function _closeModalConfirm() {
+        document.querySelector('body').classList.remove('modal-visible');
+    }
 
     _render();
     _handleSubmit();
     
     return {
         
+        templateModalConfirm: function() {
+            _templateModalConfirm();
+        },
+        closeModalConfirm: function() {
+            _closeModalConfirm();
+        },
         handleRemove: function(indice) {
             _handleRemove(indice);
         }
     }
 })()
 
-myApp.handleRemove;
+// myApp.handleRemove;
+myApp.templateModalConfirm;
+myApp.closeModalConfirm;
