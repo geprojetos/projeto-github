@@ -50,16 +50,16 @@ var myApp = (function(){
             wrapperList.innerHTML += `
                 <li class="col-6">
                     <div class="card mt-2">
-                        <div class="card-header bg-dark text-white">
+                        <header class="card-header bg-info text-white">
                             <h3 class="card-title">${ list.name }</h3>
-                        </div>
+                        </header>
                         <div class="card-body">
                             <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
                             <p class="card-text">${ list.description }</p>
-                            <div>
-                                <a class="btn btn-info btn-block mt-2 clear-both" href="${ list.html_url }" target="_blank">Acessar repositório</a>
-                                <button class="btn btn-danger btn-block mt-2" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
-                            </div>
+                            <footer class="clear-both">
+                                <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
+                                <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
+                            </footer>
                         </div>
                     </div>
                 </li>
@@ -197,15 +197,11 @@ var myApp = (function(){
 
     function _handleRemove(indice) {
             
-        // let isRemove = _confirm('Deseja remover esse repositório?');
-
-        if(isRemove) {
-
-            _removeRepository(indice);
-            _clearSuccessSearch();
-            _clearErrorSearch();
-            _setInfo();
-        }
+        _removeRepository(indice);
+        _clearSuccessSearch();
+        _clearErrorSearch();
+        _setInfo();
+        _closeModalConfirm();
     };
 
     function _removeRepository(indice) {
@@ -213,17 +209,6 @@ var myApp = (function(){
         listReps.splice(indice, 1);
         _saveLocalStorage();
         _render();
-    };
-
-    function _confirm(message) {
-        
-        if(confirm(message)) {
-
-            return true;
-        } else {
-            return false;
-        }
-        
     };
 
     function _validateForm() {
@@ -256,7 +241,7 @@ var myApp = (function(){
         window.localStorage.setItem(key, JSON.stringify(listReps));
     };
 
-    function _templateModalConfirm() {
+    function _templateModalConfirm(pos) {
 
         document.querySelector('body').classList.add('modal-visible');
 
@@ -264,7 +249,7 @@ var myApp = (function(){
             <div class="modal" tabindex="-1" role="dialog" aria-labelledby="modalConfirm" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
-                        <header class="modal-header bg-info modal-header text-white">
+                        <header class="modal-header bg-success modal-header text-white">
                             <h4 class="modal-title" id="modalConfirm">Deseja remover esse repositório?</h4>
                             <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="myApp.closeModalConfirm()">
                                 <span aria-hidden="true">&times;</span>
@@ -274,7 +259,7 @@ var myApp = (function(){
                             Esse repositório será removido da sua lista, deseja continuar?
                         </div>
                         <footer class="modal-footer bg-light">
-                            <button type="button" class="btn btn-success" >Confirmar</button>
+                            <button type="button" class="btn btn-success" onclick="myApp.handleRemove(${ pos })">Confirmar</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="myApp.closeModalConfirm()">Cancelar</button>
                         </footer>
                     </div>
@@ -286,15 +271,15 @@ var myApp = (function(){
 
     function _closeModalConfirm() {
         document.querySelector('body').classList.remove('modal-visible');
-    }
+    };
 
     _render();
     _handleSubmit();
     
     return {
         
-        templateModalConfirm: function() {
-            _templateModalConfirm();
+        templateModalConfirm: function(pos) {
+            _templateModalConfirm(pos);
         },
         closeModalConfirm: function() {
             _closeModalConfirm();
