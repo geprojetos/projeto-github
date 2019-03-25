@@ -14,13 +14,15 @@ var myApp = (function(){
     let info            = document.querySelector('.info');
     let notCards        = document.querySelector('.not-cards');
     let modalConfirm    = document.querySelector('.modal-confirm');
+    let loadMore        = document.querySelector('.load-more');
     
     function _render() {
 
-        console.log(listReps);
+        // console.log(listReps);
         
         _messageInitial();
-        _createItem();
+        // _createItem();
+        _loadMore();
     };
     
     function _messageInitial() {
@@ -38,8 +40,37 @@ var myApp = (function(){
             `;
         }
     };
+
+    function _createItem(reps) {
+
+        wrapperList.innerHTML = '';
+
+        for(list of reps) {
+            
+            let indice = reps.indexOf(list);
+
+            wrapperList.innerHTML += `
+                <li class="col-6">
+                    <div class="card mt-2">
+                        <header class="card-header bg-info text-white">
+                            <h3 class="card-title">${ list.name }</h3>
+                        </header>
+                        <div class="card-body">
+                            <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
+                            <p class="card-text">${ list.description }</p>
+                            <footer class="clear-both">
+                                <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
+                                <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
+                            </footer>
+                        </div>
+                    </div>
+                </li>
+            `
+
+        };        
+    };
     
-    function _createItem() {
+    function __createItem() {
 
         wrapperList.innerHTML = '';
 
@@ -273,6 +304,39 @@ var myApp = (function(){
         document.querySelector('body').classList.remove('modal-visible');
     };
 
+    function _loadMore() {
+
+        let cont = 0;
+        let list = [];
+
+        loadMore.onclick = () => {
+            let initial = cont;
+            console.log('Valor inicial ' + initial);
+            cont+=2;
+            console.log(`Valor final ${ cont }`);
+
+            
+            for (let i = initial; i < cont; i++) {
+                
+                list = list.concat(listReps[i]);
+                console.log(list);
+                console.log(i);
+                
+                if(!listReps[i]) {
+                    console.log('Não possui mais reps');
+                    loadMore.classList.add('d-none');
+                    return;
+                } else {
+                    loadMore.classList.remove('d-none');
+                    _createItem(list);
+                }
+                
+            }
+            
+            
+        }
+    }
+
     _render();
     _handleSubmit();
     
@@ -288,8 +352,7 @@ var myApp = (function(){
             _handleRemove(indice);
         }
     }
-})()
+})();
 
-// myApp.handleRemove;
 myApp.templateModalConfirm;
 myApp.closeModalConfirm;
