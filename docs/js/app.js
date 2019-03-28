@@ -15,14 +15,15 @@ var myApp = (function(){
     let notCards        = document.querySelector('.not-cards');
     let modalConfirm    = document.querySelector('.modal-confirm');
     let loadMore        = document.querySelector('.load-more');
+    let cont            = 0;
+    let limit           = 9;
     
     function _render() {
 
-        // console.log(listReps);
-        
+        console.log(listReps);
+        cont = 0;
         _messageInitial();
-        // _createItem();
-        _loadMore();
+        _loadMoreButton();
     };
     
     function _messageInitial() {
@@ -41,16 +42,16 @@ var myApp = (function(){
         }
     };
 
-    function _createItem(reps) {
+    function _createItem() {
 
         wrapperList.innerHTML = '';
 
-        for(list of reps) {
+        for(list of listReps) {
             
-            let indice = reps.indexOf(list);
+            let indice = listReps.indexOf(list);
 
             wrapperList.innerHTML += `
-                <li class="col-6">
+                <li class="col-4">
                     <div class="card mt-2">
                         <header class="card-header bg-info text-white">
                             <h3 class="card-title">${ list.name }</h3>
@@ -69,17 +70,19 @@ var myApp = (function(){
 
         };        
     };
-    
-    function __createItem() {
+
+    function _createItemLoadMore(final) {
+
+        let listCopy = listReps.slice(0, final);
 
         wrapperList.innerHTML = '';
 
-        for(list of listReps) {
+        for(list of listCopy) {
             
-            let indice = listReps.indexOf(list);
+            let indice = listCopy.indexOf(list);
 
             wrapperList.innerHTML += `
-                <li class="col-6">
+                <li class="col-4">
                     <div class="card mt-2">
                         <header class="card-header bg-info text-white">
                             <h3 class="card-title">${ list.name }</h3>
@@ -95,7 +98,6 @@ var myApp = (function(){
                     </div>
                 </li>
             `
-
         };        
     };
 
@@ -144,7 +146,7 @@ var myApp = (function(){
 
     function _addRepository(rep) {
         
-        listReps.push(rep);
+        listReps.unshift(rep);
         _saveLocalStorage();
         _render();
     };
@@ -304,38 +306,40 @@ var myApp = (function(){
         document.querySelector('body').classList.remove('modal-visible');
     };
 
-    function _loadMore() {
-
-        let cont = 0;
-        let list = [];
-
-        loadMore.onclick = () => {
-            let initial = cont;
-            console.log('Valor inicial ' + initial);
-            cont+=2;
-            console.log(`Valor final ${ cont }`);
-
-            
-            for (let i = initial; i < cont; i++) {
-                
-                list = list.concat(listReps[i]);
-                console.log(list);
-                console.log(i);
-                
-                if(!listReps[i]) {
-                    console.log('Não possui mais reps');
-                    loadMore.classList.add('d-none');
-                    return;
-                } else {
-                    loadMore.classList.remove('d-none');
-                    _createItem(list);
-                }
-                
-            }
-            
-            
+    function _loadMoreButton() {
+        
+        let initial = cont;
+        let final = cont+=limit;
+        
+        if (listReps.length <= limit) {
+            loadMore.classList.add('d-none');
+        } else {
+            loadMore.classList.remove('d-none');
         }
-    }
+        
+        _createItemLoadMore(final);
+        
+        loadMore.onclick = () => _showMoreReps(initial, final)
+    };
+
+    function _showMoreReps(initial, final) {
+
+        initial = cont;
+        cont+=limit;
+        final = cont;
+        
+        _createItemLoadMore(final);
+
+        for (let i = initial; i < final; i++) {
+            
+            if(!listReps[i]) {
+                loadMore.classList.add('d-none');
+                return;
+            } else {
+                loadMore.classList.remove('d-none');
+            }
+        }
+    };
 
     _render();
     _handleSubmit();
