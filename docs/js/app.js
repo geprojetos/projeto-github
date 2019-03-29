@@ -59,7 +59,7 @@ var myApp = (function(){
                         <div class="card-body">
                             <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
                             <p class="card-text">${ list.description }</p>
-                            <footer class="clear-both">
+                            <footer class="card-footer clear-both">
                                 <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
                                 <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
                             </footer>
@@ -90,7 +90,7 @@ var myApp = (function(){
                         <div class="card-body">
                             <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
                             <p class="card-text">${ list.description }</p>
-                            <footer class="clear-both">
+                            <footer class="card-footer clear-both">
                                 <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
                                 <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
                             </footer>
