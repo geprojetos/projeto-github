@@ -63,7 +63,7 @@ var myApp = (function(){
         };
     };
 
-    function _addIndexDB() {
+    function _addIndexDB(rep) {
 
         let store = connection
             .transaction(storeName, 'readwrite')
@@ -71,13 +71,11 @@ var myApp = (function(){
     
         console.log(store);
 
-        let teste = { name: 'teste', info: 'info para teste' };
-
-        let request = store.add(teste);
+        let request = store.add(rep);
         
         request.onsuccess = e => {
             console.log('Adicionado');
-            
+            _render();
         };
 
         request.onerror = e => {
@@ -207,8 +205,9 @@ var myApp = (function(){
     function _addRepository(rep) {
         
         listReps.unshift(rep);
+        _addIndexDB(rep);
         _saveLocalStorage();
-        _render();
+        // _render();
     };
 
     function _handleSubmit() {
@@ -416,12 +415,12 @@ var myApp = (function(){
         handleRemove: function(indice) {
             _handleRemove(indice);
         },
-        addIndexDB: function() {
-            _addIndexDB();
-        },
+        // addIndexDB: function() {
+        //     _addIndexDB();
+        // },
     }
 })();
 
 myApp.templateModalConfirm;
 myApp.closeModalConfirm;
-myApp.addIndexDB;
+// myApp.addIndexDB;

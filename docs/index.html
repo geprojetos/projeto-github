@@ -103,11 +103,14 @@
             background-clip: border-box;
             border: 1px solid rgba(0, 0, 0, 0.125);
             border-radius: 0.25em;
+            min-height: 280px;
         }
         .card-footer {
             position: absolute;
             bottom: 1em;
-            width: 87%;
+            width: 100%;
+            left: 0;
+            padding: 0 1em 0 1em;
         }
         .img-fluid {
             max-width: 100%;
@@ -438,9 +441,6 @@
             }
             .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
                 width: 50%;
-            }
-            .card {
-                min-height: 280px;
             }
         }
         @media(min-width: 992px) {
