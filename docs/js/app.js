@@ -17,13 +17,73 @@ var myApp = (function(){
     let loadMore        = document.querySelector('.load-more');
     let cont            = 0;
     let limit           = 9;
-    
+
+    const dbName        = 'github-project'
+    const dbVersion     = 1;
+    const storeName     = 'projects';
+    let connection;
+
     function _render() {
 
         console.log(listReps);
         cont = 0;
         _messageInitial();
         _loadMoreButton();
+    };
+
+    function _createConnection() {
+
+        let request = window.indexedDB.open(dbName, dbVersion);
+
+        request.onupgradeneeded = e => {
+
+            console.log('Cria ou alterar aum conexão');
+            
+            console.log(e.target.result);
+            let newConnection = e.target.result;
+            
+            if(newConnection.objectStoreNames.contains(storeName)) {
+                newConnection.deleteObjectStore(storeName);
+                return;
+            };
+
+            newConnection.createObjectStore(storeName, { autoIncrement: true });
+        };
+
+        request.onsuccess = e => {
+
+            console.log('Conexão realizada');
+            
+            connection = e.target.result;
+        };
+
+        request.onerror = e => {
+
+            console.log(e.target.error);
+        };
+    };
+
+    function _addIndexDB() {
+
+        let store = connection
+            .transaction(storeName, 'readwrite')
+            .objectStore(storeName)
+    
+        console.log(store);
+
+        let teste = { name: 'teste', info: 'info para teste' };
+
+        let request = store.add(teste);
+        
+        request.onsuccess = e => {
+            console.log('Adicionado');
+            
+        };
+
+        request.onerror = e => {
+
+            console.log('Não foi adicionado');
+        };
     };
     
     function _messageInitial() {
@@ -341,6 +401,7 @@ var myApp = (function(){
         }
     };
 
+    _createConnection();
     _render();
     _handleSubmit();
     
@@ -354,9 +415,13 @@ var myApp = (function(){
         },
         handleRemove: function(indice) {
             _handleRemove(indice);
-        }
+        },
+        addIndexDB: function() {
+            _addIndexDB();
+        },
     }
 })();
 
 myApp.templateModalConfirm;
 myApp.closeModalConfirm;
+myApp.addIndexDB;
