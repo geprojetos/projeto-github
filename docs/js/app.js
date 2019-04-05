@@ -3,7 +3,9 @@ var myApp = (function(){
 
     const key           = 'key:github';
     let baseUrl         = 'https://api.github.com/repos';
-    let listReps        = JSON.parse(window.localStorage.getItem(key)) || [];
+    let supportIndexedDB= false;
+    // let listReps        = JSON.parse(window.localStorage.getItem(key)) || [];
+    let listReps        = [];
     let wrapperList     = document.querySelector('.wrapper-list');
     let form            = document.querySelector('.form');
     let inputRepository = document.querySelector('.input-repository');
@@ -31,6 +33,22 @@ var myApp = (function(){
         _loadMoreButton();
     };
 
+    function _verifySupportIndexedDB() {
+
+        if(window.indexedDB) {
+
+            console.log('possui suporte');
+            supportIndexedDB = true;
+            _createConnection();
+            
+        } else {
+            console.log('Não possui suporte');
+            supportIndexedDB = false;
+            listReps = JSON.parse(window.localStorage.getItem(key)) || [];
+            _render();
+        }
+    }
+
     function _createConnection() {
 
         let request = window.indexedDB.open(dbName, dbVersion);
@@ -55,6 +73,7 @@ var myApp = (function(){
             console.log('Conexão realizada');
             
             connection = e.target.result;
+            _listIndexedDB();
         };
 
         request.onerror = e => {
@@ -63,7 +82,7 @@ var myApp = (function(){
         };
     };
 
-    function _addIndexDB(rep) {
+    function _addIndexedDB(rep) {
 
         let store = connection
             .transaction(storeName, 'readwrite')
@@ -83,6 +102,35 @@ var myApp = (function(){
             console.log('Não foi adicionado');
         };
     };
+
+    function _listIndexedDB() {
+
+        let cursor = connection
+            .transaction(storeName, 'readwrite')
+            .objectStore(storeName)
+            .openCursor();
+
+        cursor.onsuccess = e => {
+
+            let item = e.target.result;
+            
+            if(item) {
+                
+                listReps.push(item.value);
+                item.continue();
+                
+            } else {
+                console.log('acabou');
+                console.log(listReps);
+                _render();
+            }
+        };
+
+        cursor.onerror = e => {
+            console.log(e.target.error);
+        };
+        
+    }
     
     function _messageInitial() {
         
@@ -205,8 +253,11 @@ var myApp = (function(){
     function _addRepository(rep) {
         
         listReps.unshift(rep);
-        _addIndexDB(rep);
-        _saveLocalStorage();
+
+        supportIndexedDB 
+            ? _addIndexedDB(rep)
+            : _saveLocalStorage();
+        
         // _render();
     };
 
@@ -400,8 +451,8 @@ var myApp = (function(){
         }
     };
 
-    _createConnection();
-    _render();
+    _verifySupportIndexedDB();
+    // _render();
     _handleSubmit();
     
     return {
@@ -415,12 +466,8 @@ var myApp = (function(){
         handleRemove: function(indice) {
             _handleRemove(indice);
         },
-        // addIndexDB: function() {
-        //     _addIndexDB();
-        // },
     }
 })();
 
 myApp.templateModalConfirm;
 myApp.closeModalConfirm;
-// myApp.addIndexDB;
