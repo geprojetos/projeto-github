@@ -27,7 +27,6 @@ var myApp = (function(){
 
     function _render() {
 
-        console.log(listReps);
         cont = 0;
         _messageInitial();
         _loadMoreButton();
@@ -35,7 +34,7 @@ var myApp = (function(){
 
     function _verifySupportIndexedDB() {
 
-        if(window.indexedDB) {
+        if(!window.indexedDB) {
 
             console.log('possui suporte');
             supportIndexedDB = true;
@@ -46,6 +45,7 @@ var myApp = (function(){
             supportIndexedDB = false;
             listReps = JSON.parse(window.localStorage.getItem(key)) || [];
             _render();
+            console.log(listReps);
         }
     }
 
@@ -53,7 +53,7 @@ var myApp = (function(){
 
         let request = window.indexedDB.open(dbName, dbVersion);
 
-        request.onupgradeneeded = e => {
+        request.onupgradeneeded = function(e) {
 
             console.log('Cria ou alterar aum conexão');
             
@@ -68,7 +68,7 @@ var myApp = (function(){
             newConnection.createObjectStore(storeName, { autoIncrement: true });
         };
 
-        request.onsuccess = e => {
+        request.onsuccess = function(e) {
 
             console.log('Conexão realizada');
             
@@ -76,7 +76,7 @@ var myApp = (function(){
             _listIndexedDB();
         };
 
-        request.onerror = e => {
+        request.onerror = function(e) {
 
             console.log(e.target.error);
         };
@@ -86,31 +86,31 @@ var myApp = (function(){
 
         let store = connection
             .transaction(storeName, 'readwrite')
-            .objectStore(storeName)
-    
-        console.log(store);
+            .objectStore(storeName);
 
         let request = store.add(rep);
         
-        request.onsuccess = e => {
+        request.onsuccess = function() {
             console.log('Adicionado');
+            console.log(listReps);
             _render();
         };
 
-        request.onerror = e => {
+        request.onerror = function() {
 
             console.log('Não foi adicionado');
         };
     };
 
     function _listIndexedDB() {
-
+        console.log('entrou na listagem');
+        
         let cursor = connection
             .transaction(storeName, 'readwrite')
             .objectStore(storeName)
             .openCursor();
 
-        cursor.onsuccess = e => {
+        cursor.onsuccess = function(e) {
 
             let item = e.target.result;
             
@@ -121,15 +121,61 @@ var myApp = (function(){
                 
             } else {
                 console.log('acabou');
+                _render();
+                console.log(listReps);
+            }
+        };
+
+        cursor.onerror = function(e) {
+            console.log(e.target.error);
+        };
+        
+    };
+
+    function _removeIndexedDB(indice) {
+        console.log('chamou o remover');
+        
+        let cursor = connection
+            .transaction(storeName, 'readwrite')
+            .objectStore(storeName)
+            .openCursor();
+
+        cursor.onsuccess = function(e) {
+
+            let item = e.target.result;
+
+            if(item) {
+                
+                if(item.value.id == listReps[indice].id) {
+                    
+                    let request = item.delete();
+                    
+                    request.onsuccess = function() {
+                        
+                        console.log('Removido do db');
+                        // listReps.splice(indice, 1);
+                        // console.log(listReps);
+                        // // _listIndexedDB()
+                        // _render();
+                        // return;
+                    };
+                    request.onerror = function(erro) {
+                        console.log(erro);
+                        console.log('Não foi possível remover do db');
+                    }
+                }
+                
+                item.continue();
+            } else {
+                listReps.splice(indice, 1);
                 console.log(listReps);
                 _render();
             }
         };
 
-        cursor.onerror = e => {
+        cursor.onerror = function(e) {
             console.log(e.target.error);
-        };
-        
+        }
     }
     
     function _messageInitial() {
@@ -263,7 +309,7 @@ var myApp = (function(){
 
     function _handleSubmit() {
 
-        form.onsubmit = e => {
+        form.onsubmit = function(e) {
 
             e.preventDefault();
             
@@ -347,11 +393,11 @@ var myApp = (function(){
         _closeModalConfirm();
     };
 
-    function _removeRepository(indice) {
-    
-        listReps.splice(indice, 1);
-        _saveLocalStorage();
-        _render();
+    function _removeRepository(indice) {    
+        
+        supportIndexedDB 
+        ? _removeIndexedDB(indice)
+        : listReps.splice(indice, 1) && _saveLocalStorage() && _render();
     };
 
     function _validateForm() {
@@ -382,6 +428,7 @@ var myApp = (function(){
     function _saveLocalStorage() {
 
         window.localStorage.setItem(key, JSON.stringify(listReps));
+        _render();
     };
 
     function _templateModalConfirm(pos) {
