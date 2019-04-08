@@ -4,7 +4,6 @@ var myApp = (function(){
     const key           = 'key:github';
     let baseUrl         = 'https://api.github.com/repos';
     let supportIndexedDB= false;
-    // let listReps        = JSON.parse(window.localStorage.getItem(key)) || [];
     let listReps        = [];
     let wrapperList     = document.querySelector('.wrapper-list');
     let form            = document.querySelector('.form');
@@ -34,7 +33,7 @@ var myApp = (function(){
 
     function _verifySupportIndexedDB() {
 
-        if(!window.indexedDB) {
+        if(window.indexedDB) {
 
             console.log('possui suporte');
             supportIndexedDB = true;
@@ -176,7 +175,7 @@ var myApp = (function(){
         cursor.onerror = function(e) {
             console.log(e.target.error);
         }
-    }
+    };
     
     function _messageInitial() {
         
@@ -296,15 +295,38 @@ var myApp = (function(){
             })
     };
 
+    function _verifyRepositoryExisting(rep) {
+
+        let valid = false;
+
+        if(listReps.length) {
+            
+            for(item of listReps) {
+                
+                if(item.id === rep.id) {                    
+                    return valid = false;
+                }
+            };
+
+            listReps.unshift(rep);   
+            valid = true;
+
+        } else {
+            listReps.unshift(rep);   
+            valid = true;
+        }
+
+        return valid;
+    }
+
     function _addRepository(rep) {
         
-        listReps.unshift(rep);
+        let isExisting = _verifyRepositoryExisting(rep);
 
-        supportIndexedDB 
-            ? _addIndexedDB(rep)
-            : _saveLocalStorage();
-        
-        // _render();
+        if(isExisting) {
+            
+            supportIndexedDB ? _addIndexedDB(rep) : _saveLocalStorage();
+        };
     };
 
     function _handleSubmit() {
