@@ -9,9 +9,9 @@ var myApp = (function(){
     let form            = document.querySelector('.form');
     let inputRepository = document.querySelector('.input-repository');
     let inputErroMessage= document.querySelector('.repositoryHelp');
-    let searching       = document.querySelector('.searching');
-    let errorSearch     = document.querySelector('.errorSearch');
-    let successSearch   = document.querySelector('.successSearch');
+    let warning         = document.querySelector('.warning');
+    let danger          = document.querySelector('.danger');
+    let success         = document.querySelector('.success');
     let info            = document.querySelector('.info');
     let notCards        = document.querySelector('.not-cards');
     let modalConfirm    = document.querySelector('.modal-confirm');
@@ -90,19 +90,18 @@ var myApp = (function(){
         let request = store.add(rep);
         
         request.onsuccess = function() {
-            console.log('Adicionado');
             console.log(listReps);
+            _setSuccess(_messages().add);
             _render();
         };
 
-        request.onerror = function() {
+        request.onerror = function(e) {
 
-            console.log('Não foi adicionado');
+            console.log(e.target.error);
         };
     };
 
     function _listIndexedDB() {
-        console.log('entrou na listagem');
         
         let cursor = connection
             .transaction(storeName, 'readwrite')
@@ -132,7 +131,6 @@ var myApp = (function(){
     };
 
     function _removeIndexedDB(indice) {
-        console.log('chamou o remover');
         
         let cursor = connection
             .transaction(storeName, 'readwrite')
@@ -152,15 +150,11 @@ var myApp = (function(){
                     request.onsuccess = function() {
                         
                         console.log('Removido do db');
-                        // listReps.splice(indice, 1);
-                        // console.log(listReps);
-                        // // _listIndexedDB()
-                        // _render();
-                        // return;
+                        _setInfo(_messages().remove);
                     };
                     request.onerror = function(erro) {
                         console.log(erro);
-                        console.log('Não foi possível remover do db');
+                        _setWarning(_messages().removeErro)
                     }
                 }
                 
@@ -191,35 +185,6 @@ var myApp = (function(){
                 <p>Use o campo de procurar logo a cima e adicione os seus repositórios favoritos.</p>
             `;
         }
-    };
-
-    function _createItem() {
-
-        wrapperList.innerHTML = '';
-
-        for(list of listReps) {
-            
-            let indice = listReps.indexOf(list);
-
-            wrapperList.innerHTML += `
-                <li class="col-4">
-                    <div class="card mt-2">
-                        <header class="card-header bg-info text-white">
-                            <h3 class="card-title">${ list.name }</h3>
-                        </header>
-                        <div class="card-body">
-                            <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
-                            <p class="card-text">${ list.description }</p>
-                            <footer class="card-footer clear-both">
-                                <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
-                                <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
-                            </footer>
-                        </div>
-                    </div>
-                </li>
-            `
-
-        };        
     };
 
     function _createItemLoadMore(final) {
@@ -266,12 +231,17 @@ var myApp = (function(){
             .catch(erro => erro)
     };
 
+    function _clearMessage() {
+
+        _clearError();
+        _clearSuccess();
+        _clearInfo();
+    }
+
     function _findRepositoryAndReportMessage(repository) {
 
-        _clearErrorSearch();
-        _clearSuccessSearch();
-        _clearInfo();
-        _setSearching();
+        _clearMessage();
+        _setWarning(_messages().searching);
 
         return _findRepository(repository)
             .then(res => {
@@ -280,8 +250,6 @@ var myApp = (function(){
                     throw res;
                 } else {
                     _addRepository(res);
-                    _clearSearching();
-                    _setSuccessSearch();
                     return true;
                 }
                 
@@ -289,7 +257,7 @@ var myApp = (function(){
             .catch(erro => {
 
                 _clearSearching();
-                _setErrorSearch();
+                _setError(_messages().removeErro);
                 console.log(erro.statusText);
                 return erro;
             })
@@ -325,8 +293,13 @@ var myApp = (function(){
 
         if(isExisting) {
             
-            supportIndexedDB ? _addIndexedDB(rep) : _saveLocalStorage();
-        };
+            _clearSearching();
+            
+            supportIndexedDB ? _addIndexedDB(rep) : _setSuccess(_messages().add), _saveLocalStorage();
+        } else {
+            _clearSearching();
+            _setInfo(_messages().repExisting);
+        }
     };
 
     function _handleSubmit() {
@@ -357,47 +330,47 @@ var myApp = (function(){
         inputRepository.focus();
     };
 
-    function _setSearching() {
+    function _setWarning(message) {
 
-        searching.classList.remove('d-none');
-        searching.textContent = 'Procurando pelo repositório, aguarde...';
+        warning.classList.remove('d-none');
+        warning.textContent = message;
     };
 
     function _clearSearching() {
 
-        searching.classList.add('d-none');
-        searching.textContent = '';
+        warning.classList.add('d-none');
+        warning.textContent = '';
     };
 
-    function _setErrorSearch() {
+    function _setError(message) {
 
-        errorSearch.classList.remove('d-none');
-        errorSearch.textContent = 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente e tente novamente';
+        danger.classList.remove('d-none');
+        danger.textContent = message;
         inputRepository.focus();
     };
 
-    function _clearErrorSearch() {
+    function _clearError() {
 
-        errorSearch.classList.add('d-none');
-        errorSearch.textContent = '';
+        danger.classList.add('d-none');
+        danger.textContent = '';
     };
 
-    function _setSuccessSearch() {
+    function _setSuccess(message) {
 
-        successSearch.classList.remove('d-none');
-        successSearch.textContent = 'Repositório adicionado a sua lista';
+        success.classList.remove('d-none');
+        success.textContent = message;
     };
 
-    function _clearSuccessSearch() {
+    function _clearSuccess() {
 
-        successSearch.classList.add('d-none');
-        successSearch.textContent = '';
+        success.classList.add('d-none');
+        success.textContent = '';
     };
 
-    function _setInfo() {
+    function _setInfo(message) {
 
         info.classList.remove('d-none');
-        info.textContent = 'Repositório removido';
+        info.textContent = message;
     };
 
     function _clearInfo() {
@@ -409,9 +382,8 @@ var myApp = (function(){
     function _handleRemove(indice) {
             
         _removeRepository(indice);
-        _clearSuccessSearch();
-        _clearErrorSearch();
-        _setInfo();
+        _clearSuccess();
+        _clearError();
         _closeModalConfirm();
     };
 
@@ -419,7 +391,7 @@ var myApp = (function(){
         
         supportIndexedDB 
         ? _removeIndexedDB(indice)
-        : listReps.splice(indice, 1) && _saveLocalStorage() && _render();
+        : listReps.splice(indice, 1), _setInfo(_messages().remove), _saveLocalStorage(), _render();
     };
 
     function _validateForm() {
@@ -520,8 +492,19 @@ var myApp = (function(){
         }
     };
 
+    function _messages() {
+
+        return {
+            add: 'Repositório adicionado',
+            remove: 'Repositório removido',
+            removeErro: 'Não foi possivel remover esse repositório, tente novamente ou procure pelo desenvolvedor do site',
+            searching: 'Buscando pelo respositório, aguarde...',
+            notFound: 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente e tente novamente',
+            repExisting: 'Este repositório já está presente na sua lista',
+        }
+    }
+
     _verifySupportIndexedDB();
-    // _render();
     _handleSubmit();
     
     return {
