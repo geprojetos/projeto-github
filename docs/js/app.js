@@ -217,7 +217,7 @@ var myApp = (function(){
     function _findRepository(repository) {
 
         return fetch(`${ baseUrl }/${ repository }`)
-            .then(res => {
+            .then(function(res) {
 
                 if(!res.ok) {
                     throw res;
@@ -225,7 +225,9 @@ var myApp = (function(){
                     return res.json();
                 }
             })
-            .catch(erro => erro)
+            .catch(function(erro) {
+                console.log(erro);
+            })
     };
 
     function _clearMessage() {
@@ -241,7 +243,7 @@ var myApp = (function(){
         _setWarning(_messages().searching);
 
         return _findRepository(repository)
-            .then(res => {
+            .then(function(res) {
                 
                 if(res.statusText) {
                     throw res;
@@ -251,7 +253,7 @@ var myApp = (function(){
                 }
                 
             })
-            .catch(erro => {
+            .catch(function(erro) {
 
                 _clearSearching();
                 _setError(_messages().removeErro);
@@ -315,7 +317,7 @@ var myApp = (function(){
             if(isValid) {
 
                 _findRepositoryAndReportMessage(inputRepository.value.trim().toLowerCase())
-                    .then(res => {
+                    .then(function(res) {
                         if(res === true) {
                             
                             _clearForm();
@@ -482,7 +484,10 @@ var myApp = (function(){
         
         _createItemLoadMore(final);
         
-        loadMore.onclick = () => _showMoreReps(initial, final)
+        loadMore.onclick = function() {
+            
+            _showMoreReps(initial, final)
+        }
     };
 
     function _showMoreReps(initial, final) {
