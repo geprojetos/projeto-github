@@ -30,9 +30,8 @@ var myApp = (function(){
 
             cont = 0;
             model.messageInitial();
-            _loadMoreButton();
+            controller.loadMoreButton();
         },
-
         repositories: function(final) {
 
             let listCopy = listReps.slice(0, final);
@@ -86,7 +85,7 @@ var myApp = (function(){
                         </div>
                     </div>
                 </div>
-                <div class="modal-overlay"></div>
+                <div class="modal-overlay" onclick="myApp.closeModalConfirm()"></div>
             `
         },
     };
@@ -449,63 +448,59 @@ var myApp = (function(){
 
     let controller = {
 
-    };
+        handleSubmit: function() {
 
-    function _handleSubmit() {
-
-        form.onsubmit = function(e) {
-
-            e.preventDefault();
-            
-            let isValid = model.validateForm();
-
-            if(isValid) {
-
-                model.findRepositoryAndReportMessage(inputRepository.value.trim().toLowerCase())
-                    .then(function(res) {
-                        if(res === true) {
-                            
-                            model.clearForm();
-                            return;
-                        }
-                    })
+            form.onsubmit = function(e) {
+    
+                e.preventDefault();
+                
+                let isValid = model.validateForm();
+    
+                if(isValid) {
+    
+                    model.findRepositoryAndReportMessage(inputRepository.value.trim().toLowerCase())
+                        .then(function(res) {
+                            if(res === true) {
+                                
+                                model.clearForm();
+                                return;
+                            }
+                        })
+                }
             }
-        }
-    };
-
-    function _handleRemove(indice) {
+        },
+        handleRemove: function(indice) {
             
-        model.removeRepository(indice);
-        model.clearSuccess();
-        model.clearError();
-        _closeModalConfirm();
-    };
-
-    function _closeModalConfirm() {
-        document.querySelector('body').classList.remove('modal-visible');
-    };
-
-    function _loadMoreButton() {
+            model.removeRepository(indice);
+            model.clearSuccess();
+            model.clearError();
+            controller.closeModalConfirm();
+        },
+        closeModalConfirm: function() {
+            document.querySelector('body').classList.remove('modal-visible');
+        },
+        loadMoreButton: function() {
         
-        let initial = cont;
-        let final = cont+=limit;
-        
-        if (listReps.length <= limit) {
-            loadMore.classList.add('d-none');
-        } else {
-            loadMore.classList.remove('d-none');
-        }
-        
-        view.repositories(final);
-        
-        loadMore.onclick = function() {
+            let initial = cont;
+            let final = cont+=limit;
             
-            model.showMoreReps(initial, final)
-        }
+            if (listReps.length <= limit) {
+                loadMore.classList.add('d-none');
+            } else {
+                loadMore.classList.remove('d-none');
+            }
+            
+            view.repositories(final);
+            
+            loadMore.onclick = function() {
+                
+                model.showMoreReps(initial, final)
+            }
+        },
     };
 
     model.verifySupportIndexedDB();
-    _handleSubmit();
+    controller.handleSubmit();
     
     return {
         
@@ -513,10 +508,10 @@ var myApp = (function(){
             view.modalConfirm(pos);
         },
         closeModalConfirm: function() {
-            _closeModalConfirm();
+            controller.closeModalConfirm();
         },
         handleRemove: function(indice) {
-            _handleRemove(indice);
+            controller.handleRemove(indice);
         },
     }
 })();
