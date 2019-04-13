@@ -35,7 +35,7 @@ var myApp = (function(){
 
         if(window.indexedDB) {
 
-            console.log('possui suporte');
+            console.log('Possui suporte');
             supportIndexedDB = true;
             _createConnection();
             
@@ -44,9 +44,8 @@ var myApp = (function(){
             supportIndexedDB = false;
             listReps = JSON.parse(window.localStorage.getItem(key)) || [];
             _render();
-            console.log(listReps);
         }
-    }
+    };
 
     function _createConnection() {
 
@@ -54,9 +53,6 @@ var myApp = (function(){
 
         request.onupgradeneeded = function(e) {
 
-            console.log('Cria ou alterar aum conexão');
-            
-            console.log(e.target.result);
             let newConnection = e.target.result;
             
             if(newConnection.objectStoreNames.contains(storeName)) {
@@ -93,6 +89,8 @@ var myApp = (function(){
             console.log(listReps);
             _setSuccess(_messages().add);
             _render();
+            console.log('gravado no db');
+            
         };
 
         request.onerror = function(e) {
@@ -118,9 +116,8 @@ var myApp = (function(){
                 item.continue();
                 
             } else {
-                console.log('acabou');
+                listReps.reverse();
                 _render();
-                console.log(listReps);
             }
         };
 
@@ -295,7 +292,12 @@ var myApp = (function(){
             
             _clearSearching();
             
-            supportIndexedDB ? _addIndexedDB(rep) : _setSuccess(_messages().add), _saveLocalStorage();
+            if(supportIndexedDB) {
+                _addIndexedDB(rep);
+            } else {
+                _setSuccess(_messages().add);
+                 _saveLocalStorage();
+            }
         } else {
             _clearSearching();
             _setInfo(_messages().repExisting);
@@ -389,9 +391,17 @@ var myApp = (function(){
 
     function _removeRepository(indice) {    
         
-        supportIndexedDB 
-        ? _removeIndexedDB(indice)
-        : listReps.splice(indice, 1), _setInfo(_messages().remove), _saveLocalStorage(), _render();
+        if(supportIndexedDB) {
+
+            _removeIndexedDB(indice);
+        } else {
+
+            listReps.splice(indice, 1);
+            _setInfo(_messages().remove); 
+            _saveLocalStorage(); 
+            _render();
+        }
+         
     };
 
     function _validateForm() {
@@ -423,6 +433,8 @@ var myApp = (function(){
 
         window.localStorage.setItem(key, JSON.stringify(listReps));
         _render();
+        console.log('gravado no localStorage');
+        
     };
 
     function _templateModalConfirm(pos) {
