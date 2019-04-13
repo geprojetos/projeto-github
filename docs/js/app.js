@@ -54,7 +54,7 @@ var myApp = (function(){
                                 <p class="card-text">${ list.description }</p>
                                 <footer class="card-footer clear-both">
                                     <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
-                                    <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
+                                    <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.modalConfirm(${ indice })">Remover</button>
                                 </footer>
                             </div>
                         </div>
@@ -62,7 +62,7 @@ var myApp = (function(){
                 `
             };        
         },
-        templateModalConfirm: function(pos) {
+        modalConfirm: function(pos) {
 
             document.querySelector('body').classList.add('modal-visible');
     
@@ -254,160 +254,201 @@ var myApp = (function(){
             view.render();
             
         },
+        addIndexedDB: function(rep) {
+
+            let store = connection
+                .transaction(storeName, 'readwrite')
+                .objectStore(storeName);
+    
+            let request = store.add(rep);
+            
+            request.onsuccess = function() {
+                
+                console.log(listReps);
+                model.setSuccess(model.messages().add);
+                view.render();
+                console.log('gravado no db');
+            };
+    
+            request.onerror = function(e) {
+    
+                console.log(e.target.error);
+            };
+        },
+        removeIndexedDB: function(indice) {
+        
+            let cursor = connection
+                .transaction(storeName, 'readwrite')
+                .objectStore(storeName)
+                .openCursor();
+    
+            cursor.onsuccess = function(e) {
+    
+                let item = e.target.result;
+    
+                if(item) {
+                    
+                    if(item.value.id == listReps[indice].id) {
+                        
+                        let request = item.delete();
+                        
+                        request.onsuccess = function() {
+                            
+                            console.log('Removido do db');
+                            model.setInfo(model.messages().remove);
+                        };
+                        request.onerror = function(erro) {
+                            
+                            console.log(erro);
+                            model.setWarning(model.messages().removeErro)
+                        }
+                    }
+                    
+                    item.continue();
+                } else {
+                    listReps.splice(indice, 1);
+                    console.log(listReps);
+                    view.render();
+                }
+            };
+    
+            cursor.onerror = function(e) {
+                console.log(e.target.error);
+            }
+        },
+        findRepositoryAndReportMessage: function(repository) {
+
+            model.clearAllMessages();
+            model.setWarning(model.messages().searching);
+    
+            return model.findRepository(repository)
+                .then(function(res) {
+                    
+                    if(res.statusText) {
+                        throw res;
+                    } else {
+                        model.addRepository(res);
+                        return true;
+                    }
+                    
+                })
+                .catch(function(erro) {
+    
+                    model.clearSearching();
+                    model.setError(model.messages().removeErro);
+                    console.log(erro);
+                    return erro;
+                })
+        },
+        findRepository: function(repository) {
+
+            return fetch(`${ baseUrl }/${ repository }`)
+                .then(function(res) {
+    
+                    if(!res.ok) {
+                        throw res;
+                    } else {
+                        return res.json();
+                    }
+                })
+                .catch(function(erro) {
+                    console.log(erro);
+                })
+        },
+        verifyRepositoryExisting: function(rep) {
+
+            let valid = false;
+    
+            if(listReps.length) {
+                
+                for(item of listReps) {
+                    
+                    if(item.id === rep.id) {                    
+                        return valid = false;
+                    }
+                };
+    
+                listReps.unshift(rep);   
+                valid = true;
+    
+            } else {
+                listReps.unshift(rep);   
+                valid = true;
+            }
+    
+            return valid;
+        },
+        addRepository: function(rep) {
+        
+            let isExisting = model.verifyRepositoryExisting(rep);
+    
+            if(isExisting) {
+                
+                model.clearSearching();
+                
+                if(supportIndexedDB) {
+                    model.addIndexedDB(rep);
+                } else {
+                    model.setSuccess(model.messages().add);
+                    model.saveLocalStorage();
+                }
+            } else {
+                model.clearSearching();
+                model.setInfo(model.messages().repExisting);
+            }
+        },
+        removeRepository: function(indice) {    
+        
+            if(supportIndexedDB) {
+    
+                model.removeIndexedDB(indice);
+            } else {
+    
+                listReps.splice(indice, 1);
+                model.setInfo(model.messages().remove); 
+                model.saveLocalStorage(); 
+                view.render();
+            }
+             
+        },
+        validateForm: function() {
+
+            if(!inputRepository.value) {
+    
+                model.inputErroStyle();
+                return false;
+            };
+    
+            model.inputClearErro();
+            return true;
+        },
+        clearForm: function() {
+
+            inputRepository.value = '';
+            inputRepository.focus();
+        },
+        showMoreReps: function(initial, final) {
+
+            initial = cont;
+            cont+=limit;
+            final = cont;
+            
+            view.repositories(final);
+    
+            for (let i = initial; i < final; i++) {
+                
+                if(!listReps[i]) {
+                    loadMore.classList.add('d-none');
+                    return;
+                } else {
+                    loadMore.classList.remove('d-none');
+                }
+            }
+        },
     };
 
     let controller = {
 
-    };
-
-
-
-    function _addIndexedDB(rep) {
-
-        let store = connection
-            .transaction(storeName, 'readwrite')
-            .objectStore(storeName);
-
-        let request = store.add(rep);
-        
-        request.onsuccess = function() {
-            console.log(listReps);
-            model.setSuccess(model.messages().add);
-            view.render();
-            console.log('gravado no db');
-            
-        };
-
-        request.onerror = function(e) {
-
-            console.log(e.target.error);
-        };
-    };
-
-    function _removeIndexedDB(indice) {
-        
-        let cursor = connection
-            .transaction(storeName, 'readwrite')
-            .objectStore(storeName)
-            .openCursor();
-
-        cursor.onsuccess = function(e) {
-
-            let item = e.target.result;
-
-            if(item) {
-                
-                if(item.value.id == listReps[indice].id) {
-                    
-                    let request = item.delete();
-                    
-                    request.onsuccess = function() {
-                        
-                        console.log('Removido do db');
-                        model.setInfo(model.messages().remove);
-                    };
-                    request.onerror = function(erro) {
-                        console.log(erro);
-                        model.setWarning(model.messages().removeErro)
-                    }
-                }
-                
-                item.continue();
-            } else {
-                listReps.splice(indice, 1);
-                console.log(listReps);
-                view.render();
-            }
-        };
-
-        cursor.onerror = function(e) {
-            console.log(e.target.error);
-        }
-    };
-
-    function _findRepository(repository) {
-
-        return fetch(`${ baseUrl }/${ repository }`)
-            .then(function(res) {
-
-                if(!res.ok) {
-                    throw res;
-                } else {
-                    return res.json();
-                }
-            })
-            .catch(function(erro) {
-                console.log(erro);
-            })
-    };
-
-    function _findRepositoryAndReportMessage(repository) {
-
-        model.clearAllMessages();
-        model.setWarning(model.messages().searching);
-
-        return _findRepository(repository)
-            .then(function(res) {
-                
-                if(res.statusText) {
-                    throw res;
-                } else {
-                    _addRepository(res);
-                    return true;
-                }
-                
-            })
-            .catch(function(erro) {
-
-                model.clearSearching();
-                model.setError(model.messages().removeErro);
-                console.log(erro);
-                return erro;
-            })
-    };
-
-    function _verifyRepositoryExisting(rep) {
-
-        let valid = false;
-
-        if(listReps.length) {
-            
-            for(item of listReps) {
-                
-                if(item.id === rep.id) {                    
-                    return valid = false;
-                }
-            };
-
-            listReps.unshift(rep);   
-            valid = true;
-
-        } else {
-            listReps.unshift(rep);   
-            valid = true;
-        }
-
-        return valid;
-    }
-
-    function _addRepository(rep) {
-        
-        let isExisting = _verifyRepositoryExisting(rep);
-
-        if(isExisting) {
-            
-            model.clearSearching();
-            
-            if(supportIndexedDB) {
-                _addIndexedDB(rep);
-            } else {
-                model.setSuccess(model.messages().add);
-                 model.saveLocalStorage();
-            }
-        } else {
-            model.clearSearching();
-            model.setInfo(model.messages().repExisting);
-        }
     };
 
     function _handleSubmit() {
@@ -416,15 +457,15 @@ var myApp = (function(){
 
             e.preventDefault();
             
-            let isValid = _validateForm();
+            let isValid = model.validateForm();
 
             if(isValid) {
 
-                _findRepositoryAndReportMessage(inputRepository.value.trim().toLowerCase())
+                model.findRepositoryAndReportMessage(inputRepository.value.trim().toLowerCase())
                     .then(function(res) {
                         if(res === true) {
                             
-                            _clearForm();
+                            model.clearForm();
                             return;
                         }
                     })
@@ -432,45 +473,12 @@ var myApp = (function(){
         }
     };
 
-    function _clearForm() {
-
-        inputRepository.value = '';
-        inputRepository.focus();
-    };
-
     function _handleRemove(indice) {
             
-        _removeRepository(indice);
+        model.removeRepository(indice);
         model.clearSuccess();
         model.clearError();
         _closeModalConfirm();
-    };
-
-    function _removeRepository(indice) {    
-        
-        if(supportIndexedDB) {
-
-            _removeIndexedDB(indice);
-        } else {
-
-            listReps.splice(indice, 1);
-            model.setInfo(model.messages().remove); 
-            model.saveLocalStorage(); 
-            view.render();
-        }
-         
-    };
-
-    function _validateForm() {
-
-        if(!inputRepository.value) {
-
-            model.inputErroStyle();
-            return false;
-        };
-
-        model.inputClearErro();
-        return true;
     };
 
     function _closeModalConfirm() {
@@ -492,26 +500,7 @@ var myApp = (function(){
         
         loadMore.onclick = function() {
             
-            _showMoreReps(initial, final)
-        }
-    };
-
-    function _showMoreReps(initial, final) {
-
-        initial = cont;
-        cont+=limit;
-        final = cont;
-        
-        view.repositories(final);
-
-        for (let i = initial; i < final; i++) {
-            
-            if(!listReps[i]) {
-                loadMore.classList.add('d-none');
-                return;
-            } else {
-                loadMore.classList.remove('d-none');
-            }
+            model.showMoreReps(initial, final)
         }
     };
 
@@ -520,8 +509,8 @@ var myApp = (function(){
     
     return {
         
-        templateModalConfirm: function(pos) {
-            view.templateModalConfirm(pos);
+        modalConfirm: function(pos) {
+            view.modalConfirm(pos);
         },
         closeModalConfirm: function() {
             _closeModalConfirm();
@@ -532,5 +521,5 @@ var myApp = (function(){
     }
 })();
 
-myApp.templateModalConfirm;
+myApp.modalConfirm;
 myApp.closeModalConfirm;
