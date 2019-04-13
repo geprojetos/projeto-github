@@ -24,58 +24,243 @@ var myApp = (function(){
     const storeName     = 'projects';
     let connection;
 
-    function _render() {
+    let view = {
 
-        cont = 0;
-        _messageInitial();
-        _loadMoreButton();
+        render: function() {
+
+            cont = 0;
+            model.messageInitial();
+            _loadMoreButton();
+        },
+
+        repositories: function(final) {
+
+            let listCopy = listReps.slice(0, final);
+    
+            wrapperList.innerHTML = '';
+    
+            for(list of listCopy) {
+                
+                let indice = listCopy.indexOf(list);
+    
+                wrapperList.innerHTML += `
+                    <li class="col-4">
+                        <div class="card mt-2">
+                            <header class="card-header bg-info text-white">
+                                <h3 class="card-title">${ list.name }</h3>
+                            </header>
+                            <div class="card-body">
+                                <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
+                                <p class="card-text">${ list.description }</p>
+                                <footer class="card-footer clear-both">
+                                    <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
+                                    <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
+                                </footer>
+                            </div>
+                        </div>
+                    </li>
+                `
+            };        
+        },
+        templateModalConfirm: function(pos) {
+
+            document.querySelector('body').classList.add('modal-visible');
+    
+            modalConfirm.innerHTML = `
+                <div class="modal" tabindex="-1" role="dialog" aria-labelledby="modalConfirm" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <header class="modal-header bg-success modal-header text-white">
+                                <h4 class="modal-title" id="modalConfirm">Deseja remover esse repositório?</h4>
+                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="myApp.closeModalConfirm()">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </header>
+                            <div class="modal-body">
+                                Esse repositório será removido da sua lista, deseja continuar?
+                            </div>
+                            <footer class="modal-footer bg-light">
+                                <button type="button" class="btn btn-success" onclick="myApp.handleRemove(${ pos })">Confirmar</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="myApp.closeModalConfirm()">Cancelar</button>
+                            </footer>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-overlay"></div>
+            `
+        },
     };
 
-    function _verifySupportIndexedDB() {
+    let model = {
 
-        if(window.indexedDB) {
+        verifySupportIndexedDB: function() {
 
-            console.log('Possui suporte');
-            supportIndexedDB = true;
-            _createConnection();
-            
-        } else {
-            console.log('Não possui suporte');
-            supportIndexedDB = false;
-            listReps = JSON.parse(window.localStorage.getItem(key)) || [];
-            _render();
-        }
-    };
+            if(window.indexedDB) {
+    
+                console.log('Possui suporte');
+                supportIndexedDB = true;
+                model.createConnection();
+                
+            } else {
+                console.log('Não possui suporte');
+                supportIndexedDB = false;
+                listReps = JSON.parse(window.localStorage.getItem(key)) || [];
+                view.render()
+            }
+        },
+        createConnection: function() {
 
-    function _createConnection() {
-
-        let request = window.indexedDB.open(dbName, dbVersion);
-
-        request.onupgradeneeded = function(e) {
-
-            let newConnection = e.target.result;
-            
-            if(newConnection.objectStoreNames.contains(storeName)) {
-                newConnection.deleteObjectStore(storeName);
-                return;
+            let request = window.indexedDB.open(dbName, dbVersion);
+    
+            request.onupgradeneeded = function(e) {
+    
+                let newConnection = e.target.result;
+                
+                if(newConnection.objectStoreNames.contains(storeName)) {
+                    newConnection.deleteObjectStore(storeName);
+                    return;
+                };
+    
+                newConnection.createObjectStore(storeName, { autoIncrement: true });
             };
-
-            newConnection.createObjectStore(storeName, { autoIncrement: true });
-        };
-
-        request.onsuccess = function(e) {
-
-            console.log('Conexão realizada');
+    
+            request.onsuccess = function(e) {
+    
+                console.log('Conexão realizada');
+                
+                connection = e.target.result;
+                model.listIndexedDB();
+            };
+    
+            request.onerror = function(e) {
+    
+                console.log(e.target.error);
+            };
+        },
+        listIndexedDB: function() {
+        
+            let cursor = connection
+                .transaction(storeName, 'readwrite')
+                .objectStore(storeName)
+                .openCursor();
+    
+            cursor.onsuccess = function(e) {
+    
+                let item = e.target.result;
+                
+                if(item) {
+                    
+                    listReps.push(item.value);
+                    item.continue();
+                    
+                } else {
+                    listReps.reverse();
+                    view.render();
+                }
+            };
+    
+            cursor.onerror = function(e) {
+                console.log(e.target.error);
+            };
             
-            connection = e.target.result;
-            _listIndexedDB();
-        };
+        },
+        messages: function() {
 
-        request.onerror = function(e) {
+            return {
+                add: 'Repositório adicionado',
+                remove: 'Repositório removido',
+                removeErro: 'Não foi possivel remover esse repositório, tente novamente ou procure pelo desenvolvedor do site',
+                searching: 'Buscando pelo respositório, aguarde...',
+                notFound: 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente e tente novamente',
+                repExisting: 'Este repositório já está presente na sua lista',
+            }
+        },
+        messageInitial: function() {
+        
+            if(listReps.length > 0) {
+                
+                notCards.classList.add('d-none');
+                notCards.innerHTML = '';
+            } else {
+                
+                notCards.classList.remove('d-none');
+                notCards.innerHTML = `
+                    <h3>Você não possui nenhum repositório</h3>
+                    <p>Use o campo de procurar logo a cima e adicione os seus repositórios favoritos.</p>
+                `;
+            }
+        },
+        setSuccess: function(message) {
 
-            console.log(e.target.error);
-        };
+            success.classList.remove('d-none');
+            success.textContent = message;
+        },
+        setInfo: function(message) {
+
+            info.classList.remove('d-none');
+            info.textContent = message;
+        },
+        setWarning: function(message) {
+
+            warning.classList.remove('d-none');
+            warning.textContent = message;
+        },
+        setError: function(message) {
+
+            danger.classList.remove('d-none');
+            danger.textContent = message;
+            inputRepository.focus();
+        },
+        clearAllMessages: function() {
+            model.clearError();
+            model.clearSuccess();
+            model.clearInfo();
+        },
+        clearSearching: function() {
+
+            warning.classList.add('d-none');
+            warning.textContent = '';
+        },
+        clearSuccess: function() {
+
+            success.classList.add('d-none');
+            success.textContent = '';
+        },
+        clearInfo: function() {
+        
+            info.classList.add('d-none');
+            info.textContent = '';
+        },
+        clearError: function() {
+
+            danger.classList.add('d-none');
+            danger.textContent = '';
+        },
+        inputErroStyle: function() {
+
+            inputRepository.classList.add('border-danger');
+            inputErroMessage.textContent = 'Por favor, preencha o campo com o nome do usuário e do repositório. exemplo: usuário/repositório'
+            inputRepository.focus();
+        },
+        inputClearErro: function() {
+        
+            inputRepository.classList.remove('border-danger');
+            inputErroMessage.textContent = '';
+        },
+        saveLocalStorage: function() {
+
+            window.localStorage.setItem(key, JSON.stringify(listReps));
+            console.log('gravado no localStorage');
+            view.render();
+            
+        },
     };
+
+    let controller = {
+
+    };
+
+
 
     function _addIndexedDB(rep) {
 
@@ -87,8 +272,8 @@ var myApp = (function(){
         
         request.onsuccess = function() {
             console.log(listReps);
-            _setSuccess(_messages().add);
-            _render();
+            model.setSuccess(model.messages().add);
+            view.render();
             console.log('gravado no db');
             
         };
@@ -97,34 +282,6 @@ var myApp = (function(){
 
             console.log(e.target.error);
         };
-    };
-
-    function _listIndexedDB() {
-        
-        let cursor = connection
-            .transaction(storeName, 'readwrite')
-            .objectStore(storeName)
-            .openCursor();
-
-        cursor.onsuccess = function(e) {
-
-            let item = e.target.result;
-            
-            if(item) {
-                
-                listReps.push(item.value);
-                item.continue();
-                
-            } else {
-                listReps.reverse();
-                _render();
-            }
-        };
-
-        cursor.onerror = function(e) {
-            console.log(e.target.error);
-        };
-        
     };
 
     function _removeIndexedDB(indice) {
@@ -147,11 +304,11 @@ var myApp = (function(){
                     request.onsuccess = function() {
                         
                         console.log('Removido do db');
-                        _setInfo(_messages().remove);
+                        model.setInfo(model.messages().remove);
                     };
                     request.onerror = function(erro) {
                         console.log(erro);
-                        _setWarning(_messages().removeErro)
+                        model.setWarning(model.messages().removeErro)
                     }
                 }
                 
@@ -159,59 +316,13 @@ var myApp = (function(){
             } else {
                 listReps.splice(indice, 1);
                 console.log(listReps);
-                _render();
+                view.render();
             }
         };
 
         cursor.onerror = function(e) {
             console.log(e.target.error);
         }
-    };
-    
-    function _messageInitial() {
-        
-        if(listReps.length > 0) {
-            
-            notCards.classList.add('d-none');
-            notCards.innerHTML = '';
-        } else {
-            
-            notCards.classList.remove('d-none');
-            notCards.innerHTML = `
-                <h3>Você não possui nenhum repositório</h3>
-                <p>Use o campo de procurar logo a cima e adicione os seus repositórios favoritos.</p>
-            `;
-        }
-    };
-
-    function _createItemLoadMore(final) {
-
-        let listCopy = listReps.slice(0, final);
-
-        wrapperList.innerHTML = '';
-
-        for(list of listCopy) {
-            
-            let indice = listCopy.indexOf(list);
-
-            wrapperList.innerHTML += `
-                <li class="col-4">
-                    <div class="card mt-2">
-                        <header class="card-header bg-info text-white">
-                            <h3 class="card-title">${ list.name }</h3>
-                        </header>
-                        <div class="card-body">
-                            <img class="img-fluid card-img-top" src="${ list.owner.avatar_url }" alt="${ list.description }">
-                            <p class="card-text">${ list.description }</p>
-                            <footer class="card-footer clear-both">
-                                <a class="btn btn-info mt-2 btn-inline" href="${ list.html_url }" target="_blank">Acessar</a>
-                                <button class="btn btn-danger mt-2 btn-inline" onclick="myApp.templateModalConfirm(${ indice })">Remover</button>
-                            </footer>
-                        </div>
-                    </div>
-                </li>
-            `
-        };        
     };
 
     function _findRepository(repository) {
@@ -230,17 +341,10 @@ var myApp = (function(){
             })
     };
 
-    function _clearMessage() {
-
-        _clearError();
-        _clearSuccess();
-        _clearInfo();
-    }
-
     function _findRepositoryAndReportMessage(repository) {
 
-        _clearMessage();
-        _setWarning(_messages().searching);
+        model.clearAllMessages();
+        model.setWarning(model.messages().searching);
 
         return _findRepository(repository)
             .then(function(res) {
@@ -255,9 +359,9 @@ var myApp = (function(){
             })
             .catch(function(erro) {
 
-                _clearSearching();
-                _setError(_messages().removeErro);
-                console.log(erro.statusText);
+                model.clearSearching();
+                model.setError(model.messages().removeErro);
+                console.log(erro);
                 return erro;
             })
     };
@@ -292,17 +396,17 @@ var myApp = (function(){
 
         if(isExisting) {
             
-            _clearSearching();
+            model.clearSearching();
             
             if(supportIndexedDB) {
                 _addIndexedDB(rep);
             } else {
-                _setSuccess(_messages().add);
-                 _saveLocalStorage();
+                model.setSuccess(model.messages().add);
+                 model.saveLocalStorage();
             }
         } else {
-            _clearSearching();
-            _setInfo(_messages().repExisting);
+            model.clearSearching();
+            model.setInfo(model.messages().repExisting);
         }
     };
 
@@ -334,60 +438,11 @@ var myApp = (function(){
         inputRepository.focus();
     };
 
-    function _setWarning(message) {
-
-        warning.classList.remove('d-none');
-        warning.textContent = message;
-    };
-
-    function _clearSearching() {
-
-        warning.classList.add('d-none');
-        warning.textContent = '';
-    };
-
-    function _setError(message) {
-
-        danger.classList.remove('d-none');
-        danger.textContent = message;
-        inputRepository.focus();
-    };
-
-    function _clearError() {
-
-        danger.classList.add('d-none');
-        danger.textContent = '';
-    };
-
-    function _setSuccess(message) {
-
-        success.classList.remove('d-none');
-        success.textContent = message;
-    };
-
-    function _clearSuccess() {
-
-        success.classList.add('d-none');
-        success.textContent = '';
-    };
-
-    function _setInfo(message) {
-
-        info.classList.remove('d-none');
-        info.textContent = message;
-    };
-
-    function _clearInfo() {
-        
-        info.classList.add('d-none');
-        info.textContent = '';
-    };
-
     function _handleRemove(indice) {
             
         _removeRepository(indice);
-        _clearSuccess();
-        _clearError();
+        model.clearSuccess();
+        model.clearError();
         _closeModalConfirm();
     };
 
@@ -399,9 +454,9 @@ var myApp = (function(){
         } else {
 
             listReps.splice(indice, 1);
-            _setInfo(_messages().remove); 
-            _saveLocalStorage(); 
-            _render();
+            model.setInfo(model.messages().remove); 
+            model.saveLocalStorage(); 
+            view.render();
         }
          
     };
@@ -410,61 +465,12 @@ var myApp = (function(){
 
         if(!inputRepository.value) {
 
-            _inputErroStyle();
+            model.inputErroStyle();
             return false;
         };
 
-        _inputClearErro();
+        model.inputClearErro();
         return true;
-    };
-
-    function _inputErroStyle() {
-
-        inputRepository.classList.add('border-danger');
-        inputErroMessage.textContent = 'Por favor, preencha o campo com o nome do usuário e do repositório. exemplo: usuário/repositório'
-        inputRepository.focus();
-    };
-
-    function _inputClearErro() {
-        
-        inputRepository.classList.remove('border-danger');
-        inputErroMessage.textContent = '';
-    };
-
-    function _saveLocalStorage() {
-
-        window.localStorage.setItem(key, JSON.stringify(listReps));
-        _render();
-        console.log('gravado no localStorage');
-        
-    };
-
-    function _templateModalConfirm(pos) {
-
-        document.querySelector('body').classList.add('modal-visible');
-
-        modalConfirm.innerHTML = `
-            <div class="modal" tabindex="-1" role="dialog" aria-labelledby="modalConfirm" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <header class="modal-header bg-success modal-header text-white">
-                            <h4 class="modal-title" id="modalConfirm">Deseja remover esse repositório?</h4>
-                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="myApp.closeModalConfirm()">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </header>
-                        <div class="modal-body">
-                            Esse repositório será removido da sua lista, deseja continuar?
-                        </div>
-                        <footer class="modal-footer bg-light">
-                            <button type="button" class="btn btn-success" onclick="myApp.handleRemove(${ pos })">Confirmar</button>
-                            <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="myApp.closeModalConfirm()">Cancelar</button>
-                        </footer>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-overlay"></div>
-        `
     };
 
     function _closeModalConfirm() {
@@ -482,7 +488,7 @@ var myApp = (function(){
             loadMore.classList.remove('d-none');
         }
         
-        _createItemLoadMore(final);
+        view.repositories(final);
         
         loadMore.onclick = function() {
             
@@ -496,7 +502,7 @@ var myApp = (function(){
         cont+=limit;
         final = cont;
         
-        _createItemLoadMore(final);
+        view.repositories(final);
 
         for (let i = initial; i < final; i++) {
             
@@ -509,25 +515,13 @@ var myApp = (function(){
         }
     };
 
-    function _messages() {
-
-        return {
-            add: 'Repositório adicionado',
-            remove: 'Repositório removido',
-            removeErro: 'Não foi possivel remover esse repositório, tente novamente ou procure pelo desenvolvedor do site',
-            searching: 'Buscando pelo respositório, aguarde...',
-            notFound: 'Não foi possível encontrar o repositório, verique se o nome foi digitado corretamente e tente novamente',
-            repExisting: 'Este repositório já está presente na sua lista',
-        }
-    }
-
-    _verifySupportIndexedDB();
+    model.verifySupportIndexedDB();
     _handleSubmit();
     
     return {
         
         templateModalConfirm: function(pos) {
-            _templateModalConfirm(pos);
+            view.templateModalConfirm(pos);
         },
         closeModalConfirm: function() {
             _closeModalConfirm();
