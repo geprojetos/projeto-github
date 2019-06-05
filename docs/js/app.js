@@ -333,9 +333,9 @@ var myApp = (function(){
                 })
                 .catch(function(erro) {
     
-                    model.clearSearching();
-                    model.setError(model.messages().removeErro);
                     console.log(erro);
+                    model.clearSearching();
+                    model.setWarning(model.messages().notFound);                    
                     return erro;
                 })
         },
